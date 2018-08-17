@@ -68,12 +68,14 @@
 (defspec round-trip-load-char-separated-value-string 100
   (testing "generating person models round trip to csv and back"
     (for-all [ps (s/gen ::models/persons)]
-             (let [db (atom [])]
-               (some-> ps
-                       models/maps->csv-prep
-                       (models/write-csv-data-to-string \,)
-                       (->> (core/load-char-separated-value-string db)))
-               (is (= @db ps))))))
+             (for [separator [\| \, \space]]
+               (let [db (atom [])]
+                 (is (= (do (some-> ps
+                                    models/maps->csv-prep
+                                    (models/write-csv-data-to-string separator)
+                                    (->> (core/load-char-separated-value-string db)))
+                            @db)
+                        ps)))))))
 
 (comment
 
