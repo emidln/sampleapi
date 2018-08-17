@@ -87,9 +87,10 @@ If you have any questions, please reach out to me. I'm `bja` on the Clojurians s
 
 There are three outstanding areas I'd like to fix. I hope to get some time to flesh these out as this is a demo repo.
 
-1. Write some tests. We already have a lot of spec definitions so encoding some properties to hold that I've used in the repl would be a good start.
+1. Write some more tests. The HTTP API could use some exercising. The output formats are currently partials, but some property testing might be in order.
 2. Figure out how to convey a CSV body for a POST in Swagger. It wasn't immediately obvious to me how I should document this with Swagger/OpenAPI. 
 3. Allow selecting which output a user wishes for the CLI (instead of just showing them all).
+4. Handle failures in the API more gracefully and semantically (return 400s when appropriate for POST /records)
 
 ## License
 
