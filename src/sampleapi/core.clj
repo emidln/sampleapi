@@ -65,13 +65,25 @@
   [db record]
   (swap! db (fnil conj []) record))
 
+(s/fdef load-record
+  :args (s/cat :db ::models/db
+               :record (s/map-of keyword? string?))
+  :ret ::models/db)
+
 (defn load-char-separated-value-string
   "Loads each record in the char-separated-value string into db."
   [db csv-string]
   (let [csv-header (first (str/split-lines csv-string))
         separator (detect-separator csv-header)]
-    (->> (csv/read-csv csv-string :separator separator)
-         trim-csv-fields
-         csv-data->maps
-         (map (partial load-record db))
-         doall)))
+    (when separator
+      (->> (csv/read-csv csv-string :separator separator)
+           trim-csv-fields
+           csv-data->maps
+           (map (partial load-record db))
+           doall))))
+
+(s/fdef load-char-separated-value-string
+  :args (s/cat :db ::models/db
+               :csv-string string?)
+  :ret (s/or :valid ::models/db
+             :invalid nil?))

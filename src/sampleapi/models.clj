@@ -3,9 +3,11 @@
   (:require [clojure.spec.alpha :as s]
             [clojure.spec.gen.alpha :as gen]
             [clj-time.format :as tf]
-            [clj-time.spec :as ts])
+            [clj-time.spec :as ts]
+            [clojure.data.csv :as csv])
   (:import org.joda.time.DateTime
-           org.joda.time.DateTimeZone))
+           org.joda.time.DateTimeZone
+           java.io.StringWriter))
 
 (s/def ::LastName string?)
 (s/def ::FirstName string?)
@@ -37,11 +39,20 @@
 
 (s/def ::persons (s/coll-of ::person))
 
-(comment
+(def atom? (partial instance? clojure.lang.Atom))
 
-  (defn maps->csv-prep
-    "Turns a sequence of maps into a sequence of vectors appropriate for csv"
-    [rows]
+(s/def ::db
+  (s/with-gen
+    (s/and atom?
+           (comp coll? deref))
+    #(gen/fmap (fn [coll]
+                 (atom coll))
+               (s/gen ::persons))))
+
+(defn maps->csv-prep
+  "Turns a sequence of maps into a sequence of vectors appropriate for csv"
+  [rows]
+  (when (seq rows)
     (let [keys (->> (reduce (fn [s xs]
                               (into s xs))
                             #{}
@@ -49,19 +60,32 @@
                     (into []))
           lookups (apply juxt keys)]
       (cons (mapv name keys)
-            (map lookups rows))))
+            (map lookups rows)))))
 
-  (s/fdef maps->csv-prep
-    :args (s/cat :rows (s/coll-of (s/map-of keyword? any?)))
-    :ret (s/coll-of (s/coll-of any?))
-    :fn (fn [{:keys [args ret]}]
-          (= (count args) (count ret))))
+(s/fdef maps->csv-prep
+  :args (s/cat :rows (s/coll-of (s/map-of keyword? any?)))
+  :ret (s/or :happy (s/coll-of (s/coll-of any?))
+             :empty nil?)
+  :fn (fn [{:keys [args ret]}]
+        (= (count args) (count (-> ret second)))))
+
+(defn write-csv-data-to-string
+  [data separator]
+  (let [writer (StringWriter.)]
+    (csv/write-csv writer data :separator separator)
+    (str writer)))
+
+(comment
 
   (require '[orchestra.spec.test :as stest])
   (stest/instrument)
 
   (require '[clojure.data.csv :as csv])
   (require '[clojure.java.io :as io])
+
+  (->> (gen/sample (s/gen ::persons) 1)
+       first
+       maps->csv-prep)
 
   (defn generate-test-file
     [filename separator]
