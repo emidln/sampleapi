@@ -60,7 +60,9 @@ $ SAMPLEAPI_HTTP_HOST=localhost SAMPLEAPI_HTTP_IP=8080 lein run -m sampleapi.web
 ```bash
 
 # Load some data
-$ curl -v -XPOST 'http://localhost:8080/records' --data-binary @resources/test.psv 
+$ curl -v -XPOST 'http://localhost:8080/records' -H 'Content-Type: text/pipe-separated-values' --data-binary @resources/test.psv 
+$ curl -v -XPOST 'http://localhost:8080/records' -H 'Content-Type: text/space-separated-values' --data-binary @resources/test.ssv 
+$ curl -v -XPOST 'http://localhost:8080/records' -H 'Content-Type: text/csv' --data-binary @resources/test.csv 
 # Query the data
 $ curl -v -XGET  'http://localhost:8080/records/gender'
 $ curl -v -XGET  'http://localhost:8080/records/birthdate'
