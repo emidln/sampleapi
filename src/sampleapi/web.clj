@@ -10,6 +10,7 @@
             [compojure.api.middleware :as mw]
             [immutant.web :as web]
             [ring.util.request :refer [body-string]]
+            [spec-tools.spec :as spec]
             [sampleapi.core :as core]
             [sampleapi.models :as models]
             [sampleapi.settings :as settings])
@@ -38,9 +39,9 @@
                       :consumes ["text/csv"
                                  "text/space-separated-values"
                                  "text/pipe-separated-values"]
-                      :parameters {:body {:csv-data string?}}}
+                      :parameters {:body spec/string?}}
             ;; Use a 204 instead of a 201 since we don't have a good Location to link
-            :responses {204 {:schema nil?}}
+            :responses {204 {:schema spec/nil?}}
             :components [db]
             {:status 204
              :body (do (core/load-char-separated-value-string db (body-string request)) nil)})
