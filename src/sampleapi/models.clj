@@ -67,7 +67,9 @@
   :ret (s/or :happy (s/coll-of (s/coll-of any?))
              :empty nil?)
   :fn (fn [{:keys [args ret]}]
-        (= (count args) (count (-> ret second)))))
+        (let [r (-> ret second)]
+          (when (some? r)
+            (= (count args) (count r))))))
 
 (defn write-csv-data-to-string
   [data separator]
